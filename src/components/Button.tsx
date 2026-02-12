@@ -1,10 +1,10 @@
 "use client";
 
-import { motion } from "framer-motion";
-import { ButtonHTMLAttributes, forwardRef } from "react";
+import { motion, HTMLMotionProps } from "framer-motion";
+import { forwardRef } from "react";
 import { cn } from "@/lib/utils";
 
-interface ButtonProps extends ButtonHTMLAttributes<HTMLButtonElement> {
+interface ButtonProps extends Omit<HTMLMotionProps<"button">, "ref"> {
   variant?: "primary" | "secondary" | "outline" | "ghost";
   size?: "sm" | "md" | "lg";
 }
