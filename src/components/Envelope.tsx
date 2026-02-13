@@ -120,8 +120,15 @@ export default function Envelope({ onOpen }: EnvelopeProps) {
     });
 
     if (!response.ok) {
-      const data = await response.json();
-      throw new Error(data.error || "Failed to send message");
+      let errorMessage = "Failed to send message";
+      try {
+        const data = await response.json();
+        errorMessage = data.error || errorMessage;
+      } catch (e) {
+        // If response is not JSON, use status text
+        errorMessage = `Error ${response.status}: ${response.statusText}`;
+      }
+      throw new Error(errorMessage);
     }
   };
 

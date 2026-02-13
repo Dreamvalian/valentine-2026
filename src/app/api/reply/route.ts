@@ -11,15 +11,18 @@ export async function POST(request: Request) {
       );
     }
 
-    const webhookUrl = process.env.DISCORD_WEBHOOK_URL;
+    const webhookUrl = process.env.DISCORD_WEBHOOK_URL?.trim();
 
     if (!webhookUrl) {
-      console.error("DISCORD_WEBHOOK_URL is not defined");
+      console.error("DISCORD_WEBHOOK_URL is not defined in environment variables");
       return NextResponse.json(
-        { error: "Server configuration error" },
+        { error: "Discord Webhook URL is not configured. Please add DISCORD_WEBHOOK_URL to your environment variables." },
         { status: 500 },
       );
     }
+
+    // Discord message limits: description max 4096 chars
+    const truncatedMessage = message.length > 4000 ? message.substring(0, 3997) + "..." : message;
 
     const discordResponse = await fetch(webhookUrl, {
       method: "POST",
@@ -27,10 +30,11 @@ export async function POST(request: Request) {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({
+        content: "💌 You've got a new reply!",
         embeds: [
           {
             title: "💖 New reply!",
-            description: message,
+            description: truncatedMessage,
             color: 0xffb6c1, // Light pink
             timestamp: new Date().toISOString(),
           },
@@ -41,9 +45,20 @@ export async function POST(request: Request) {
     if (!discordResponse.ok) {
       const errorData = await discordResponse.text();
       console.error("Discord API error:", errorData);
+      
+      let errorMessage = "Failed to send message to Discord";
+      try {
+        const discordError = JSON.parse(errorData);
+        if (discordError.message) {
+          errorMessage = `Discord API error: ${discordError.message}`;
+        }
+      } catch (e) {
+        // Fallback if errorData is not JSON
+      }
+
       return NextResponse.json(
-        { error: "Failed to send to Discord" },
-        { status: 500 },
+        { error: errorMessage },
+        { status: discordResponse.status },
       );
     }
 

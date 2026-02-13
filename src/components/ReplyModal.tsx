@@ -35,9 +35,9 @@ export default function ReplyModal({
         onClose();
         setStatus("idle");
       }, 2000);
-    } catch (err) {
+    } catch (err: any) {
       setStatus("error");
-      setErrorMessage("Failed to send message. Please try again.");
+      setErrorMessage(err.message || "Failed to send message. Please try again.");
     }
   };
 
