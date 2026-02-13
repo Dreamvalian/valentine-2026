@@ -139,7 +139,7 @@ export default function Envelope({ onOpen }: EnvelopeProps) {
           "relative perspective-1000 transition-all duration-1000",
           !isOpen
             ? "cursor-pointer group scale-100 hover:scale-105"
-            : "scale-100",
+            : "scale-100 translate-y-20 sm:translate-y-32",
         )}
         onClick={handleOpen}>
         <DecorativeElements />
