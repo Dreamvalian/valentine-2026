@@ -426,6 +426,7 @@ export default function Envelope({
   const containerRef = useRef<HTMLDivElement | null>(null);
   const wrapperRef = useRef<HTMLDivElement | null>(null);
   const [openYOffset, setOpenYOffset] = useState(0);
+  const VERTICAL_TWEAK = 16; // small downward offset to feel visually centered
 
   const calcCenterOffset = () => {
     if (!containerRef.current || !wrapperRef.current) return 0;
@@ -525,7 +526,7 @@ export default function Envelope({
           animate={
             isOpen
               ? {
-                  y: openYOffset,
+                  y: openYOffset + VERTICAL_TWEAK,
                   opacity: 0.7,
                   scale: 0.85,
                   rotateZ: -1,
