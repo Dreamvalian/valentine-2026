@@ -60,11 +60,6 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
-  cursor: none !important;
 }
 
-button,
-a,
-[role="button"] {
-  cursor: none !important;
-}
+/* Default system cursor restored by removing custom cursor overrides */

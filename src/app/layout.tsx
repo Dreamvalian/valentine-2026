@@ -13,8 +13,8 @@ const playfair = Playfair_Display({
 });
 
 export const metadata: Metadata = {
-  title: "Valentine Digital Envelope",
-  description: "A romantic Valentine digital envelope experience",
+  title: "Happy Valentine!",
+  description: "Made with love by koala",
 };
 
 export default function RootLayout({
