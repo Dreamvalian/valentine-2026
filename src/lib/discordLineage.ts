@@ -103,20 +103,22 @@ export async function buildMessageLineage(
     });
   };
 
-  pushHop(current, "start");
+  const currentMsgInit: DiscordMessage = current as DiscordMessage;
+  pushHop(currentMsgInit, "start");
 
   // Follow referenced_message or message_reference chain
+  let currentMsg: DiscordMessage = currentMsgInit;
   while (depth++ < maxDepth) {
-    const ref = current.message_reference;
-    const deep = current.referenced_message;
+    const ref = currentMsg.message_reference;
+    const deep = currentMsg.referenced_message;
 
     if (deep && deep.id) {
       const via: LineageHop["via"] =
-        deep.channel_id !== current.channel_id
+        deep.channel_id !== currentMsg.channel_id
           ? "cross_channel_reply"
           : "reply";
       pushHop(deep, via);
-      current = deep;
+      currentMsg = deep;
       continue;
     }
 
@@ -129,9 +131,10 @@ export async function buildMessageLineage(
           guild_id: ref.guild_id,
           author_id: "unknown",
           type: undefined,
-          via: ref.channel_id !== current.channel_id
-            ? "cross_channel_reply"
-            : "reply",
+          via:
+            ref.channel_id !== currentMsg.channel_id
+              ? "cross_channel_reply"
+              : "reply",
         });
         incomplete = true;
         break;
@@ -148,19 +151,20 @@ export async function buildMessageLineage(
           guild_id: ref.guild_id,
           author_id: "unknown",
           type: undefined,
-          via: ref.channel_id !== current.channel_id
-            ? "cross_channel_reply"
-            : "reply",
+          via:
+            ref.channel_id !== currentMsg.channel_id
+              ? "cross_channel_reply"
+              : "reply",
         });
         incomplete = true;
         break;
       }
       const via: LineageHop["via"] =
-        next.channel_id !== current.channel_id
+        next.channel_id !== currentMsg.channel_id
           ? "cross_channel_reply"
           : "reply";
       pushHop(next, via);
-      current = next;
+      currentMsg = next;
       continue;
     }
 
@@ -170,4 +174,3 @@ export async function buildMessageLineage(
 
   return { lineage, origin: lineage[lineage.length - 1], incomplete };
 }
-

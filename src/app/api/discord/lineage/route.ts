@@ -1,9 +1,9 @@
-import { NextRequest, NextResponse } from "next/server";
 import {
   buildMessageLineage,
   discordRestFetcher,
   type DiscordMessage,
 } from "@/lib/discordLineage";
+import { NextRequest, NextResponse } from "next/server";
 
 export async function POST(req: NextRequest) {
   try {
@@ -39,4 +39,3 @@ export async function POST(req: NextRequest) {
     );
   }
 }
-
