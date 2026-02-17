@@ -6,7 +6,6 @@ import { AnimatePresence, motion } from "framer-motion";
 import {
   CloudRain,
   Coffee,
-  Droplets,
   Flame,
   Heart,
   Megaphone,
@@ -38,6 +37,23 @@ export type EnvelopeTheme =
   | "bored"
   | "proud"
   | "grateful";
+
+type CssSupports = {
+  supports?: (value: string) => boolean;
+};
+
+type CssSupportsWindow = Window & {
+  CSS?: CssSupports;
+};
+
+function supports3DTransforms(): boolean {
+  if (typeof window === "undefined") return false;
+  const win = window as CssSupportsWindow;
+  const supports = win.CSS?.supports;
+  return typeof supports === "function"
+    ? supports("transform-style: preserve-3d")
+    : false;
+}
 
 const THEME_CONFIG = {
   love: {
@@ -224,94 +240,81 @@ const THEME_CONFIG = {
   },
 };
 
+function pseudoRandom(
+  theme: EnvelopeTheme,
+  index: number,
+  salt: number,
+): number {
+  const base = theme.length * 9973 + index * 37 + salt * 101;
+  const value = Math.sin(base) * 10000;
+  return value - Math.floor(value);
+}
+
 interface EnvelopeProps {
   theme?: EnvelopeTheme;
   onOpen?: () => void;
   title?: string;
   letters?: string[][];
-  recipientName?: string;
   senderName?: string;
   className?: string;
+  moodDescription?: string;
 }
 
 const DecorativeElements = ({ theme }: { theme: EnvelopeTheme }) => {
   const config = THEME_CONFIG[theme];
 
-  const icons = useMemo(() => {
-    switch (theme) {
-      case "lonely":
-        return [Star, Moon];
-      case "sad":
-        return [Droplets, CloudRain];
-      case "angry":
-        return [Flame, Sparkles];
-      case "happy":
-        return [Sun, Star];
-      case "excited":
-        return [Sparkles, Stars];
-      case "nice":
-        return [Heart, Smile];
-      case "cantSleep":
-        return [Moon, Star];
-      case "loveReminder":
-        return [Heart, Sparkles];
-      case "bored":
-        return [Star, Megaphone];
-      case "proud":
-        return [Star, Sparkles];
-      case "grateful":
-        return [Heart, Star];
-      default:
-        return [Heart, Star];
-    }
-  }, [theme]);
-
-  const PrimaryIcon = icons[0];
-  const SecondaryIcon = icons[1];
-
   const hearts = useMemo(
     () =>
-      Array.from({ length: 10 }).map(() => ({
-        left: 5 + Math.random() * 90,
-        startTop: 100 + Math.random() * 40,
-        driftX: (Math.random() - 0.5) * 60,
-        rise: 200 + Math.random() * 260,
-        scale: 0.6 + Math.random() * 0.8,
-        duration: 6 + Math.random() * 6,
-        delay: Math.random() * 3,
-        opacity: 0.25 + Math.random() * 0.5,
-        z: Math.random() > 0.6 ? 1 : 0,
-      })),
+      Array.from({ length: 10 }).map((_, index) => {
+        const rand = (salt: number) => pseudoRandom(theme, index, salt);
+        return {
+          left: 5 + rand(1) * 90,
+          startTop: 100 + rand(2) * 40,
+          driftX: (rand(3) - 0.5) * 60,
+          rise: 200 + rand(4) * 260,
+          scale: 0.6 + rand(5) * 0.8,
+          duration: 6 + rand(6) * 6,
+          delay: rand(7) * 3,
+          opacity: 0.25 + rand(8) * 0.5,
+          z: rand(9) > 0.6 ? 1 : 0,
+        };
+      }),
     [theme],
   );
 
   const stars = useMemo(
     () =>
-      Array.from({ length: 12 }).map(() => ({
-        left: Math.random() * 100,
-        top: Math.random() * 100,
-        size: 10 + Math.random() * 8,
-        duration: 2.5 + Math.random() * 2.5,
-        delay: Math.random() * 2,
-        opacity: 0.2 + Math.random() * 0.6,
-      })),
+      Array.from({ length: 12 }).map((_, index) => {
+        const rand = (salt: number) => pseudoRandom(theme, index, salt);
+        return {
+          left: rand(1) * 100,
+          top: rand(2) * 100,
+          size: 10 + rand(3) * 8,
+          duration: 2.5 + rand(4) * 2.5,
+          delay: rand(5) * 2,
+          opacity: 0.2 + rand(6) * 0.6,
+        };
+      }),
     [theme],
   );
 
   const confetti = useMemo(
     () =>
-      Array.from({ length: 14 }).map(() => ({
-        left: 5 + Math.random() * 90,
-        startTop: 110 + Math.random() * 30,
-        curveX1: (Math.random() - 0.5) * 80,
-        curveX2: (Math.random() - 0.5) * 120,
-        fall: 240 + Math.random() * 240,
-        rotate: 90 + Math.random() * 180,
-        size: 3 + Math.floor(Math.random() * 3),
-        duration: 7 + Math.random() * 5,
-        delay: Math.random() * 2,
-        opacity: 0.15 + Math.random() * 0.45,
-      })),
+      Array.from({ length: 14 }).map((_, index) => {
+        const rand = (salt: number) => pseudoRandom(theme, index, salt);
+        return {
+          left: 5 + rand(1) * 90,
+          startTop: 110 + rand(2) * 30,
+          curveX1: (rand(3) - 0.5) * 80,
+          curveX2: (rand(4) - 0.5) * 120,
+          fall: 240 + rand(5) * 240,
+          rotate: 90 + rand(6) * 180,
+          size: 3 + Math.floor(rand(7) * 3),
+          duration: 7 + rand(8) * 5,
+          delay: rand(9) * 2,
+          opacity: 0.15 + rand(10) * 0.45,
+        };
+      }),
     [theme],
   );
 
@@ -407,18 +410,15 @@ export default function Envelope({
   onOpen,
   title = "Click to open",
   letters = [["No content available"]],
-  recipientName = "Sugar",
   senderName = "Koala",
   className,
+  moodDescription,
 }: EnvelopeProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [isReplyOpen, setIsReplyOpen] = useState(false);
   const [letterContent, setLetterContent] = useState(letters[0]);
   const [isGenerating, setIsGenerating] = useState(false);
-  const supports3D =
-    typeof window !== "undefined" &&
-    (window as any).CSS &&
-    (CSS as any).supports?.("transform-style: preserve-3d");
+  const supports3D = supports3DTransforms();
 
   const config = THEME_CONFIG[theme];
   const SealIcon = config.sealIcon;
@@ -482,7 +482,7 @@ export default function Envelope({
       headers: {
         "Content-Type": "application/json",
       },
-      body: JSON.stringify({ message, theme }),
+      body: JSON.stringify({ message, theme, mood: moodDescription }),
     });
 
     if (!response.ok) {
@@ -490,7 +490,7 @@ export default function Envelope({
       try {
         const data = await response.json();
         errorMessage = data.error || errorMessage;
-      } catch (e) {
+      } catch {
         errorMessage = `Error ${response.status}: ${response.statusText}`;
       }
       throw new Error(errorMessage);

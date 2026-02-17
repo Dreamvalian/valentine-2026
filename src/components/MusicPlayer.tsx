@@ -2,7 +2,6 @@
 
 import { AnimatePresence, motion } from "framer-motion";
 import { Music, Music2, X } from "lucide-react";
-import { useEffect, useState } from "react";
 
 interface MusicPlayerProps {
   isPlaying: boolean;
@@ -10,19 +9,10 @@ interface MusicPlayerProps {
 }
 
 export default function MusicPlayer({ isPlaying, onToggle }: MusicPlayerProps) {
-  const [showPlayer, setShowPlayer] = useState(false);
-
-  // Automatically show the player and play music when triggered (e.g. envelope opens)
-  useEffect(() => {
-    if (isPlaying) {
-      setShowPlayer(true);
-    }
-  }, [isPlaying]);
-
   return (
     <div className='fixed bottom-8 right-8 z-50 flex flex-col items-end gap-4'>
       <AnimatePresence>
-        {showPlayer && (
+        {isPlaying && (
           <motion.div
             initial={{ opacity: 0, scale: 0.8, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
@@ -38,7 +28,7 @@ export default function MusicPlayer({ isPlaying, onToggle }: MusicPlayerProps) {
                 </span>
               </div>
               <button
-                onClick={() => setShowPlayer(false)}
+                onClick={onToggle}
                 className='text-gray-400 hover:text-pink-500 p-1'>
                 <X className='w-4 h-4' />
               </button>
@@ -72,7 +62,7 @@ export default function MusicPlayer({ isPlaying, onToggle }: MusicPlayerProps) {
       <motion.button
         whileHover={{ scale: 1.1 }}
         whileTap={{ scale: 0.9 }}
-        onClick={() => setShowPlayer(!showPlayer)}
+        onClick={onToggle}
         className='p-4 rounded-full bg-white/50 backdrop-blur-sm border border-pink-100 text-pink-400 hover:bg-white transition-all duration-300 shadow-lg group'
         aria-label='Music player'>
         <div className='relative'>

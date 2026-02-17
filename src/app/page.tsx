@@ -4,18 +4,6 @@ import Background from "@/components/Background";
 import Envelope, { EnvelopeTheme } from "@/components/Envelope";
 import { EMOTIONAL_LETTERS } from "@/lib/content";
 import { AnimatePresence, motion } from "framer-motion";
-import {
-  CloudRain,
-  Coffee,
-  Flame,
-  Heart,
-  Megaphone,
-  Moon,
-  Smile,
-  Star,
-  Stars,
-  Sun,
-} from "lucide-react";
 import dynamic from "next/dynamic";
 import { useState } from "react";
 const MusicPlayer = dynamic(() => import("@/components/MusicPlayer"), {
@@ -29,102 +17,134 @@ export default function Home() {
   const [selectedTheme, setSelectedTheme] = useState<EnvelopeTheme | null>(
     null,
   );
-  const [showAll, setShowAll] = useState(false);
+  const [feelingInput, setFeelingInput] = useState("");
+  const [inputError, setInputError] = useState("");
 
   const handleEnvelopeOpen = (theme: EnvelopeTheme) => {
     setIsMusicPlaying(true);
     setActiveTheme(theme);
   };
 
-  const items: { title: string; theme: EnvelopeTheme; letters: string[][] }[] =
-    [
-      {
-        title: "Open when you're sad",
-        theme: "sad",
-        letters: EMOTIONAL_LETTERS.sad,
-      },
-      {
-        title: "Open when you're happy",
-        theme: "happy",
-        letters: EMOTIONAL_LETTERS.happy,
-      },
-      {
-        title: "Open when you miss me",
-        theme: "miss",
-        letters: EMOTIONAL_LETTERS.miss,
-      },
-      {
-        title: "Open when you're excited",
-        theme: "excited",
-        letters: EMOTIONAL_LETTERS.excited,
-      },
-      {
-        title: "Open when you want to hear something nice",
-        theme: "nice",
-        letters: EMOTIONAL_LETTERS.nice,
-      },
-      {
-        title: "Open when you feel lonely",
-        theme: "lonely",
-        letters: EMOTIONAL_LETTERS.lonely,
-      },
-      {
-        title: "Open when you're angry",
-        theme: "angry",
-        letters: EMOTIONAL_LETTERS.angry,
-      },
-      {
-        title: "Open when you can't sleep",
-        theme: "cantSleep",
-        letters: EMOTIONAL_LETTERS.cantSleep,
-      },
-      {
-        title: "Open when you need a reminder of my love",
-        theme: "loveReminder",
-        letters: EMOTIONAL_LETTERS.loveReminder,
-      },
-      {
-        title: "Open when you're bored",
-        theme: "bored",
-        letters: EMOTIONAL_LETTERS.bored,
-      },
-      {
-        title: "Open when you're proud of yourself",
-        theme: "proud",
-        letters: EMOTIONAL_LETTERS.proud,
-      },
-      {
-        title: "Open when you feel grateful",
-        theme: "grateful",
-        letters: EMOTIONAL_LETTERS.grateful,
-      },
-    ];
-
-  const ICONS: Record<EnvelopeTheme, { Icon: any; color: string }> = {
-    love: { Icon: Heart, color: "text-pink-500" },
-    sad: { Icon: CloudRain, color: "text-blue-500" },
-    lonely: { Icon: Moon, color: "text-indigo-500" },
-    angry: { Icon: Flame, color: "text-orange-500" },
-    happy: { Icon: Sun, color: "text-yellow-600" },
-    miss: { Icon: Moon, color: "text-violet-600" },
-    excited: { Icon: Stars, color: "text-fuchsia-600" },
-    nice: { Icon: Smile, color: "text-teal-600" },
-    cantSleep: { Icon: Moon, color: "text-purple-600" },
-    loveReminder: { Icon: Heart, color: "text-rose-600" },
-    bored: { Icon: Megaphone, color: "text-gray-600" },
-    proud: { Icon: Star, color: "text-emerald-600" },
-    grateful: { Icon: Coffee, color: "text-green-600" },
+  const THEME_TITLES: Record<EnvelopeTheme, string> = {
+    sad: "Open when you're sad",
+    happy: "Open when you're happy",
+    miss: "Open when you miss me",
+    excited: "Open when you're excited",
+    nice: "Open when you want to hear something nice",
+    lonely: "Open when you feel lonely",
+    angry: "Open when you're angry",
+    cantSleep: "Open when you can't sleep",
+    loveReminder: "Open when you need a reminder of my love",
+    bored: "Open when you're bored",
+    proud: "Open when you're proud of yourself",
+    grateful: "Open when you feel grateful",
+    love: "Open when you just need a little love",
   };
 
-  const PRIMARY_THEMES: EnvelopeTheme[] = [
-    "sad",
-    "happy",
-    "miss",
-    "loveReminder",
+  const MOOD_PRESETS = [
+    {
+      id: "lonely",
+      label: "Lonely",
+      text: "I'm feeling really lonely tonight.",
+    },
+    {
+      id: "sad",
+      label: "Sad",
+      text: "I'm feeling sad and a bit low.",
+    },
+    {
+      id: "anxious",
+      label: "Anxious",
+      text: "I'm feeling anxious about everything coming up.",
+    },
+    {
+      id: "angry",
+      label: "Frustrated",
+      text: "I'm feeling frustrated and a little angry.",
+    },
+    {
+      id: "happy",
+      label: "Light",
+      text: "I'm feeling light and quietly happy.",
+    },
+    {
+      id: "tired",
+      label: "Drained",
+      text: "I'm feeling drained and low on energy.",
+    },
   ];
-  const itemsToShow = showAll
-    ? items
-    : items.filter((it) => PRIMARY_THEMES.includes(it.theme));
+
+  const detectThemeFromText = (text: string): EnvelopeTheme => {
+    const value = text.toLowerCase();
+    if (
+      value.includes("lonely") ||
+      value.includes("alone") ||
+      value.includes("isolated")
+    ) {
+      return "lonely";
+    }
+    if (
+      value.includes("sad") ||
+      value.includes("down") ||
+      value.includes("low") ||
+      value.includes("depressed")
+    ) {
+      return "sad";
+    }
+    if (
+      value.includes("anxious") ||
+      value.includes("anxiety") ||
+      value.includes("stressed") ||
+      value.includes("stress") ||
+      value.includes("overwhelmed") ||
+      value.includes("worried") ||
+      value.includes("nervous")
+    ) {
+      return "cantSleep";
+    }
+    if (
+      value.includes("angry") ||
+      value.includes("mad") ||
+      value.includes("frustrated")
+    ) {
+      return "angry";
+    }
+    if (value.includes("bored") || value.includes("restless")) {
+      return "bored";
+    }
+    if (value.includes("proud") || value.includes("accomplished")) {
+      return "proud";
+    }
+    if (value.includes("grateful") || value.includes("thankful")) {
+      return "grateful";
+    }
+    if (
+      value.includes("happy") ||
+      value.includes("good") ||
+      value.includes("better")
+    ) {
+      return "happy";
+    }
+    if (value.includes("excited")) {
+      return "excited";
+    }
+    if (value.includes("miss") || value.includes("missing")) {
+      return "miss";
+    }
+    return "loveReminder";
+  };
+
+  const handleGenerateEnvelope = () => {
+    if (!feelingInput.trim()) {
+      setInputError("Tell me a little about how you are feeling.");
+      return;
+    }
+    setInputError("");
+    const theme = detectThemeFromText(feelingInput);
+    setSelectedTheme(theme);
+    setActiveTheme(theme);
+    setStage("envelope");
+  };
 
   return (
     <main className='relative min-h-screen overflow-x-hidden'>
@@ -146,67 +166,65 @@ export default function Home() {
                   Hi,
                 </h1>
                 <h3 className='text-4xl sm:text-6xl font-serif text-gray-800 tracking-tight'>
-                  Open when you need me...
+                  Sugar, how are you feeling today?
                 </h3>
                 <p className='text-gray-500 font-serif italic text-lg'>
-                  Pick the envelope that matches your heart right now.
+                  Share what’s on your heart — I’ll choose a letter that fits
+                  your mood.
                 </p>
               </motion.div>
 
-              <div
-                aria-label='options grid'
-                className='grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4 sm:gap-6 lg:gap-6 w-full max-w-6xl'>
-                {itemsToShow.map((it, idx) => (
-                  <motion.button
-                    key={it.title}
-                    initial={{ opacity: 0, y: 10 }}
-                    animate={{ opacity: 1, y: 0 }}
-                    transition={{ delay: Math.min(0.02 * idx, 0.4) }}
-                    onClick={() => setSelectedTheme(it.theme)}
-                    aria-pressed={selectedTheme === it.theme}
-                    aria-label={it.title}
-                    className={
-                      selectedTheme === it.theme
-                        ? "rounded-2xl px-4 py-4 bg-white shadow-lg border border-gray-200 text-gray-800"
-                        : "rounded-2xl px-4 py-4 bg-white/70 backdrop-blur border border-gray-200/70 text-gray-700 hover:bg-white hover:shadow"
-                    }>
-                    <span className='flex items-center gap-2 justify-center'>
-                      <span
-                        className={ICONS[it.theme].color}
-                        aria-hidden='true'>
-                        {(() => {
-                          const { Icon } = ICONS[it.theme];
-                          return <Icon className='w-4 h-4' />;
-                        })()}
-                      </span>
-                      <span className='block text-sm sm:text-base font-medium font-serif'>
-                        {it.title}
-                      </span>
-                    </span>
-                  </motion.button>
-                ))}
+              <div className='w-full max-w-xl space-y-4'>
+                <label
+                  htmlFor='feeling-input'
+                  className='block text-sm font-serif text-gray-600 mt-4'>
+                  In your own words, how are you feeling right now?
+                </label>
+                <div className='flex flex-wrap gap-2 mt-1'>
+                  {MOOD_PRESETS.map((mood) => {
+                    const isSelected = feelingInput === mood.text;
+                    return (
+                      <button
+                        key={mood.id}
+                        type='button'
+                        onClick={() => {
+                          setFeelingInput(mood.text);
+                          setInputError("");
+                        }}
+                        aria-pressed={isSelected}
+                        className={`px-3 py-1 rounded-full border text-xs sm:text-sm transition-colors ${
+                          isSelected
+                            ? "bg-gray-900 text-white border-gray-900"
+                            : "bg-white/80 text-gray-700 border-gray-200 hover:bg-gray-900/5"
+                        }`}>
+                        {mood.label}
+                      </button>
+                    );
+                  })}
+                </div>
+                <textarea
+                  id='feeling-input'
+                  value={feelingInput}
+                  onChange={(e) => setFeelingInput(e.target.value)}
+                  placeholder='For example: a bit anxious about tomorrow, really lonely tonight, or quietly proud of yourself.'
+                  className='w-full min-h-[120px] rounded-2xl border border-gray-200 bg-white/80 px-4 py-3 text-sm text-gray-800 placeholder:text-gray-300 focus:outline-none focus:ring-2 focus:ring-gray-300'
+                  aria-label='Describe how they are feeling in your own words'
+                />
+                {inputError && (
+                  <p className='text-sm text-red-500 font-serif'>
+                    {inputError}
+                  </p>
+                )}
+
+                <motion.button
+                  onClick={handleGenerateEnvelope}
+                  whileHover={{ scale: 1.02 }}
+                  whileTap={{ scale: 0.97 }}
+                  className='mt-4 w-full px-6 py-3 rounded-full bg-gray-900 text-white hover:bg-black transition-colors font-medium'
+                  aria-label='Gently open an envelope'>
+                  Gently open an envelope
+                </motion.button>
               </div>
-
-              <button
-                onClick={() => setShowAll(!showAll)}
-                className='mt-4 text-sm text-gray-500 hover:text-gray-700 underline underline-offset-4'
-                aria-label={
-                  showAll ? "Show fewer options" : "Show more options"
-                }>
-                {showAll ? "Show fewer options" : "Show more options"}
-              </button>
-
-              <motion.button
-                onClick={() => {
-                  if (!selectedTheme) return;
-                  setActiveTheme(selectedTheme);
-                  setStage("envelope");
-                }}
-                disabled={!selectedTheme}
-                className='mt-8 sm:mt-10 px-6 py-3 rounded-full bg-gray-900 text-white disabled:opacity-40 disabled:cursor-not-allowed hover:bg-black transition-colors font-medium'
-                aria-label='Open Envelope'>
-                Open Envelope
-              </motion.button>
             </div>
 
             <footer className='fixed bottom-3 left-1/2 -translate-x-1/2 z-20 text-[11px] sm:text-xs text-gray-500 font-serif italic pointer-events-none'>
@@ -232,6 +250,8 @@ export default function Home() {
                 setStage("select");
                 setSelectedTheme(null);
                 setActiveTheme("love");
+                setFeelingInput("");
+                setInputError("");
               }}
               className='fixed top-4 left-4 z-40 px-4 py-2 rounded-full bg-white/80 backdrop-blur-md border border-gray-200 text-gray-700 hover:text-gray-900 hover:bg-white shadow-sm'
               aria-label='Back to options'>
@@ -239,10 +259,11 @@ export default function Home() {
             </motion.button>
             <Envelope
               theme={selectedTheme}
-              title={items.find((i) => i.theme === selectedTheme)!.title}
-              letters={items.find((i) => i.theme === selectedTheme)!.letters}
+              title={THEME_TITLES[selectedTheme]}
+              letters={EMOTIONAL_LETTERS[selectedTheme]}
               onOpen={() => handleEnvelopeOpen(selectedTheme)}
               className='min-h-[70vh]'
+              moodDescription={feelingInput}
             />
             <footer className='fixed bottom-3 left-1/2 -translate-x-1/2 z-20 text-[11px] sm:text-xs text-gray-500 font-serif italic pointer-events-none'>
               Made with <span aria-hidden='true'>❤️</span>

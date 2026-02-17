@@ -14,7 +14,20 @@ interface ReplyModalProps {
   theme?: EnvelopeTheme;
 }
 
-const THEME_CONFIG = {
+const REPLY_THEMES = ["love", "lonely", "sad", "angry"] as const;
+
+type ReplyTheme = (typeof REPLY_THEMES)[number];
+
+type ReplyThemeConfig = {
+  icon: typeof Heart;
+  color: string;
+  fill: string;
+  focus: string;
+  button: string;
+  success: string;
+};
+
+const THEME_CONFIG: Record<ReplyTheme, ReplyThemeConfig> = {
   love: {
     icon: Heart,
     color: "text-pink-500",
@@ -49,6 +62,13 @@ const THEME_CONFIG = {
   },
 };
 
+function resolveReplyTheme(theme?: EnvelopeTheme): ReplyTheme {
+  if (theme && REPLY_THEMES.includes(theme as ReplyTheme)) {
+    return theme as ReplyTheme;
+  }
+  return "love";
+}
+
 export default function ReplyModal({
   isOpen,
   onClose,
@@ -61,7 +81,8 @@ export default function ReplyModal({
   >("idle");
   const [errorMessage, setErrorMessage] = useState("");
 
-  const config = (THEME_CONFIG as any)[theme] ?? THEME_CONFIG.love;
+  const resolvedTheme = resolveReplyTheme(theme);
+  const config = THEME_CONFIG[resolvedTheme];
   const Icon = config.icon;
 
   const handleSubmit = async (e: FormEvent) => {
@@ -77,7 +98,7 @@ export default function ReplyModal({
         onClose();
         setStatus("idle");
       }, 2000);
-    } catch (err: any) {
+    } catch {
       setStatus("error");
       setErrorMessage("Failed to send message. Please try again.");
     }

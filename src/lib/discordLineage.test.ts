@@ -6,16 +6,22 @@ function msg(
   channel: string,
   ref?: DiscordMessage,
 ): DiscordMessage {
-  return {
+  const message: DiscordMessage = {
     id,
     channel_id: channel,
     author: { id: `user-${id}` },
-    type: 19, // REPLY
-    message_reference: ref
-      ? { message_id: ref.id, channel_id: ref.channel_id }
-      : undefined,
-    referenced_message: ref ?? undefined,
-  } as any;
+    type: 19,
+  };
+
+  if (ref) {
+    message.message_reference = {
+      message_id: ref.id,
+      channel_id: ref.channel_id,
+    };
+    message.referenced_message = ref;
+  }
+
+  return message;
 }
 
 describe("buildMessageLineage", () => {

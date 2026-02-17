@@ -1,8 +1,12 @@
+import {
+  forwardMoodToDiscord,
+  forwardReplyToDiscord,
+} from "@/lib/discordForwarder";
 import { NextResponse } from "next/server";
 
 export async function POST(request: Request) {
   try {
-    const { message } = await request.json();
+    const { message, theme, consent, mood } = await request.json();
 
     if (!message) {
       return NextResponse.json(
@@ -11,63 +15,56 @@ export async function POST(request: Request) {
       );
     }
 
-    const webhookUrl = process.env.DISCORD_WEBHOOK_URL?.trim();
-
-    if (!webhookUrl) {
-      console.error("DISCORD_WEBHOOK_URL is not defined in environment variables");
-      return NextResponse.json(
-        { error: "Discord Webhook URL is not configured. Please add DISCORD_WEBHOOK_URL to your environment variables." },
-        { status: 500 },
-      );
+    if (consent === false) {
+      return NextResponse.json({ success: true, skipped: true });
     }
 
-    // Discord message limits: description max 4096 chars
-    const truncatedMessage = message.length > 4000 ? message.substring(0, 3997) + "..." : message;
+    const themeValue = theme ? String(theme) : undefined;
+    const messageValue = String(message);
+    const moodValue =
+      typeof mood === "string" && mood.trim().length > 0 ? mood : undefined;
 
-    const discordResponse = await fetch(webhookUrl, {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
-        content: "💌 You've got a new reply!",
-        embeds: [
-          {
-            title: "💖 New reply!",
-            description: truncatedMessage,
-            color: 0xffb6c1, // Light pink
-            timestamp: new Date().toISOString(),
-          },
-        ],
-      }),
-    });
+    const moodResult = moodValue
+      ? await forwardMoodToDiscord(moodValue, themeValue, "sugar")
+      : undefined;
 
-    if (!discordResponse.ok) {
-      const errorData = await discordResponse.text();
-      console.error("Discord API error:", errorData);
-      
-      let errorMessage = "Failed to send message to Discord";
-      try {
-        const discordError = JSON.parse(errorData);
-        if (discordError.message) {
-          errorMessage = `Discord API error: ${discordError.message}`;
-        }
-      } catch (e) {
-        // Fallback if errorData is not JSON
-      }
-
-      return NextResponse.json(
-        { error: errorMessage },
-        { status: discordResponse.status },
-      );
-    }
-
-    return NextResponse.json({ success: true });
-  } catch (error) {
-    console.error("Error in reply API:", error);
-    return NextResponse.json(
-      { error: "Internal server error" },
-      { status: 500 },
+    const replyResult = await forwardReplyToDiscord(
+      messageValue,
+      themeValue,
+      "sugar",
+      moodValue,
     );
+
+    if (!replyResult.ok || (moodResult && !moodResult.ok)) {
+      return NextResponse.json(
+        {
+          success: false,
+          mood: moodResult,
+          reply: replyResult,
+          error:
+            replyResult.error ??
+            moodResult?.error ??
+            "Failed to send one or more messages to Discord",
+        },
+        {
+          status: !replyResult.ok
+            ? replyResult.status
+            : moodResult
+              ? moodResult.status
+              : 500,
+        },
+      );
+    }
+
+    return NextResponse.json({
+      success: true,
+      mood: moodResult,
+      reply: replyResult,
+      emotion: replyResult.emotion,
+    });
+  } catch (error: unknown) {
+    const message =
+      error instanceof Error ? error.message : "Internal server error";
+    return NextResponse.json({ error: message }, { status: 500 });
   }
 }

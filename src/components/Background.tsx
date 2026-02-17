@@ -2,7 +2,7 @@
 
 import { cn } from "@/lib/utils";
 import { AnimatePresence, motion } from "framer-motion";
-import { useEffect, useState } from "react";
+import { useMemo } from "react";
 
 const Heart = ({
   delay,
@@ -51,20 +51,31 @@ interface BackgroundProps {
     | "grateful";
 }
 
-export default function Background({ theme = "love" }: BackgroundProps) {
-  const [elements, setElements] = useState<
-    { id: number; x: string; delay: number; size: number }[]
-  >([]);
+function pseudoRandomForBackground(
+  theme: string,
+  index: number,
+  salt: number,
+): number {
+  const base = theme.length * 6151 + index * 97 + salt * 53;
+  const value = Math.sin(base) * 10000;
+  return value - Math.floor(value);
+}
 
-  useEffect(() => {
-    const newElements = Array.from({ length: 15 }).map((_, i) => ({
-      id: i,
-      x: `${Math.random() * 100}%`,
-      delay: Math.random() * 20,
-      size: Math.random() * (24 - 12) + 12,
-    }));
-    setElements(newElements);
-  }, []);
+export default function Background({ theme = "love" }: BackgroundProps) {
+  const elements = useMemo(
+    () =>
+      Array.from({ length: 15 }).map((_, index) => {
+        const rand = (salt: number) =>
+          pseudoRandomForBackground(theme, index, salt);
+        return {
+          id: index,
+          x: `${rand(1) * 100}%`,
+          delay: rand(2) * 20,
+          size: 12 + rand(3) * 12,
+        };
+      }),
+    [theme],
+  );
 
   const getThemeStyles = () => {
     switch (theme) {
